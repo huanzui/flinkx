@@ -147,11 +147,31 @@
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-reader</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hbase-client</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hbase-common</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-writer</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hbase-client</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hbase-common</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -316,18 +336,6 @@
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka09-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka09-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kudu-reader</artifactId>
             <version>1.6</version>
         </dependency>
@@ -371,18 +379,6 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-polardb-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-phoenix-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-phoenix-writer</artifactId>
             <version>1.6</version>
         </dependency>
 
@@ -443,7 +439,26 @@
             <artifactId>flinkx-greenplum-writer</artifactId>
             <version>1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-phoenix5-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-phoenix5-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-kingbase-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-kingbase-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
-
 
 </project>

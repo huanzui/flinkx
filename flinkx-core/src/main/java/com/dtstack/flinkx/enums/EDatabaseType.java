@@ -38,7 +38,6 @@ public enum EDatabaseType {
     MongoDB,
     Redis,
     ES,
-    SapHana,
     TeraData,
 
     /**
@@ -53,5 +52,7 @@ public enum EDatabaseType {
     clickhouse,
     polarDB,
     Phoenix,
-    dm
+    dm,
+    SapHana,
+    KingBase
 }

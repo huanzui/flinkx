@@ -19,7 +19,7 @@
 package org.apache.flink.client.deployment;
 
 import org.apache.flink.client.program.PackagedProgram;
-import org.apache.flink.configuration.*;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -183,7 +183,7 @@ public final class ClusterSpecification {
      */
     public static class ClusterSpecificationBuilder {
         private int masterMemoryMB = 768;
-        private int taskManagerMemoryMB = 768;
+        private int taskManagerMemoryMB = 1024;
         private int numberTaskManagers = 1;
         private int slotsPerTaskManager = 1;
         private int parallelism = 1;

@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 
 /**
  * Date Utilities
@@ -38,6 +41,8 @@ public class DateUtil {
     private static final String TIME_ZONE = "GMT+8";
 
     private static final String STANDARD_DATETIME_FORMAT = "standardDatetimeFormatter";
+
+    private static final String STANDARD_DATETIME_FORMAT_FOR_MILLISECOND= "standardDatetimeFormatterForMillisecond";
 
     private static final String UN_STANDARD_DATETIME_FORMAT = "unStandardDatetimeFormatter";
 
@@ -64,7 +69,6 @@ public class DateUtil {
             TimeZone timeZone = TimeZone.getTimeZone(TIME_ZONE);
 
             Map<String, SimpleDateFormat> formatterMap = new HashMap<>();
-
             SimpleDateFormat standardDatetimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             standardDatetimeFormatter.setTimeZone(timeZone);
             formatterMap.put(STANDARD_DATETIME_FORMAT,standardDatetimeFormatter);
@@ -85,7 +89,11 @@ public class DateUtil {
             yearFormatter.setTimeZone(timeZone);
             formatterMap.put(YEAR_FORMAT,yearFormatter);
 
-            return formatterMap;
+            SimpleDateFormat standardDatetimeFormatterOfMillisecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            standardDatetimeFormatterOfMillisecond.setTimeZone(timeZone);
+            formatterMap.put(STANDARD_DATETIME_FORMAT_FOR_MILLISECOND,standardDatetimeFormatterOfMillisecond);
+
+        return formatterMap;
     });
 
     private DateUtil() {}
@@ -233,6 +241,11 @@ public class DateUtil {
         return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT);
     }
 
+    //获取毫秒级别的日期解析
+    public static SimpleDateFormat getDateTimeFormatterForMillisencond(){
+        return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT_FOR_MILLISECOND);
+    }
+
     public static SimpleDateFormat getDateFormatter(){
         return datetimeFormatter.get().get(DATE_FORMAT);
     }
@@ -250,4 +263,67 @@ public class DateUtil {
         sdf.setTimeZone(TimeZone.getTimeZone(TIME_ZONE));
         return sdf;
     }
+
+    /**
+     * 常规自动日期格式识别
+     * @param str 时间字符串
+     * @return String DateFormat字符串如：yyyy-MM-dd HH:mm:ss
+     */
+    public static String getDateFormat(String str) {
+        if(StringUtils.isBlank(str)){
+            return null;
+        }
+        boolean year = false;
+        Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
+        if(pattern.matcher(str.substring(0, 4)).matches()) {
+            year = true;
+        }
+        StringBuilder sb = new StringBuilder();
+        int index = 0;
+        if(!year) {
+            if(str.contains("月") || str.contains("-") || str.contains("/")) {
+                if(Character.isDigit(str.charAt(0))) {
+                    index = 1;
+                }
+            }else {
+                index = 3;
+            }
+        }
+        for (int i = 0; i < str.length(); i++) {
+            char chr = str.charAt(i);
+            if(Character.isDigit(chr)) {
+                if(index==0) {
+                    sb.append("y");
+                }
+                if(index==1) {
+                    sb.append("M");
+                }
+                if(index==2) {
+                    sb.append("d");
+                }
+                if(index==3) {
+                    sb.append("H");
+                }
+                if(index==4) {
+                    sb.append("m");
+                }
+                if(index==5) {
+                    sb.append("s");
+                }
+                if(index==6) {
+                    sb.append("S");
+                }
+            }else {
+                if(i>0) {
+                    char lastChar = str.charAt(i-1);
+                    if(Character.isDigit(lastChar)) {
+                        index++;
+                    }
+                }
+                sb.append(chr);
+            }
+        }
+        return sb.toString();
+    }
+
 }

@@ -31,6 +31,7 @@ import org.apache.flink.types.Row;
 import org.apache.kudu.client.AsyncKuduClient;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_ADMIN_OPERATION_TIMEOUT;
 import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_AUTHENTICATION;
@@ -56,6 +57,8 @@ public class KuduReader extends BaseDataReader {
 
     private KuduConfig kuduConfig;
 
+    protected Map<String,Object> hadoopConfig;
+
     public KuduReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
 
@@ -78,17 +81,21 @@ public class KuduReader extends BaseDataReader {
                 .withBatchSizeBytes(parameterConfig.getIntVal(KEY_BATCH_SIZE_BYTES, 1024*1024))
                 .withFilter(parameterConfig.getStringVal(KEY_FILTER))
                 .build();
+
+        hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal("hadoopConfig");
     }
 
     @Override
     public DataStream<Row> readData() {
         KuduInputFormatBuilder builder = new KuduInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setColumns(columns);
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
         builder.setKuduConfig(kuduConfig);
         builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
+        builder.setHadoopConfig(hadoopConfig);
 
         return createInput(builder.finish());
     }

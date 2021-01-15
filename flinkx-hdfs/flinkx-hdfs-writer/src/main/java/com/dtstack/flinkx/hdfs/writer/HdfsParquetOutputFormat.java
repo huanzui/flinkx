@@ -24,11 +24,15 @@ import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.simple.SimpleGroupFactory;
@@ -45,9 +49,12 @@ import org.apache.parquet.schema.Types;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The subclass of HdfsOutputFormat writing parquet files
@@ -93,8 +100,21 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                     .withType(schema)
                     .withDictionaryEncoding(enableDictionary)
                     .withRowGroupSize(rowGroupSize);
-            writer = builder.build();
 
+            //开启kerberos 需要在ugi里进行build
+            if(FileSystemUtil.isOpenKerberos(hadoopConfig)){
+                UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFs);
+                ugi.doAs((PrivilegedAction<Object>) () -> {
+                    try {
+                        writer = builder.build();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                });
+            }else{
+                writer = builder.build();
+            }
             blockIndex++;
         } catch (Exception e){
             throw new RuntimeException(e);
@@ -152,12 +172,15 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         int i = 0;
         try {
             for (; i < fullColumnNames.size(); i++) {
-                Object valObj = row.getField(colIndices[i]);
-                if(valObj == null || valObj.toString().length() == 0){
-                    continue;
-                }
+                int colIndex = colIndices[i];
+                if(colIndex > -1){
+                    Object valObj = row.getField(colIndex);
+                    if(valObj == null || (valObj.toString().length() == 0 && !ColumnType.isStringType(fullColumnTypes.get(i)))){
+                        continue;
+                    }
 
-                addDataToGroup(group, valObj, i);
+                    addDataToGroup(group, valObj, i);
+                }
             }
         } catch (Exception e){
             if(e instanceof WriteRecordException){
@@ -215,8 +238,10 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
             case "varchar" :
             case "string" :
                 if (valObj instanceof Timestamp){
-                    val=DateUtil.getDateTimeFormatter().format(valObj);
+                    val=DateUtil.getDateTimeFormatterForMillisencond().format(valObj);
                     group.add(colName,val);
+                }else if (valObj instanceof Map || valObj instanceof List){
+                    group.add(colName,gson.toJson(valObj));
                 }else {
                     group.add(colName,val);
                 }

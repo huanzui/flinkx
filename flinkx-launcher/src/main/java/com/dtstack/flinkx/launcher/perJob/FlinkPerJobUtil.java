@@ -38,17 +38,16 @@ import static com.dtstack.flinkx.constants.ConfigConstant.YARN_RESOURCE_MANAGER_
  * @author tudou
  */
 public class FlinkPerJobUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(FlinkPerJobUtil.class);
     /**
      * Minimum memory requirements, checked by the Client.
      * the minimum memory should be higher than the min heap cutoff
      */
     public final static int MIN_JM_MEMORY = 768;
-    public final static int MIN_TM_MEMORY = 768;
-
-    public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.mb";
-    public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.mb";
+    public final static int MIN_TM_MEMORY = 1024;
+    public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.process.size";
+    public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.process.size";
     public final static String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
+    private static final Logger LOG = LoggerFactory.getLogger(FlinkPerJobUtil.class);
 
     /**
      * the specification of this per-job mode cost
@@ -57,16 +56,16 @@ public class FlinkPerJobUtil {
      * @return
      */
     public static ClusterSpecification createClusterSpecification(Properties conProp) {
-        int jobmanagerMemoryMb = 768;
-        int taskmanagerMemoryMb = 768;
+        int jobManagerMemoryMb = 768;
+        int taskManagerMemoryMb = 1024;
         int slotsPerTaskManager = 1;
 
         if (conProp != null) {
-            if (conProp.containsKey(JOBMANAGER_MEMORY_MB)) {
-                jobmanagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB)));
+            if (conProp.contains(JOBMANAGER_MEMORY_MB)) {
+                jobManagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB)));
             }
-            if (conProp.containsKey(TASKMANAGER_MEMORY_MB)) {
-                taskmanagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
+            if (conProp.contains(TASKMANAGER_MEMORY_MB)) {
+                taskManagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
             }
             if (conProp.containsKey(SLOTS_PER_TASKMANAGER)) {
                 slotsPerTaskManager = ValueUtil.getInt(conProp.get(SLOTS_PER_TASKMANAGER));
@@ -74,8 +73,8 @@ public class FlinkPerJobUtil {
         }
 
         return new ClusterSpecification.ClusterSpecificationBuilder()
-                .setMasterMemoryMB(jobmanagerMemoryMb)
-                .setTaskManagerMemoryMB(taskmanagerMemoryMb)
+                .setMasterMemoryMB(jobManagerMemoryMb)
+                .setTaskManagerMemoryMB(taskManagerMemoryMb)
                 .setSlotsPerTaskManager(slotsPerTaskManager)
                 .createClusterSpecification();
     }
